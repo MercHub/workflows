@@ -3,7 +3,9 @@ var gulp = require('gulp'),
 	coffee = require('gulp-coffee'),
 	browserify = require('gulp-browserify'),
 	compass = require('gulp-compass'),
+	//connect = require('gulp-connect'),
 	concat = require('gulp-concat');
+	browserSync = require('browser-sync').create();
 
 var coffeeSource = ['components/coffee/tagline.coffee'];
 var jsSources = [
@@ -28,6 +30,7 @@ gulp.task('js', function(){
 		.pipe(concat('script.js'))
 		.pipe(browserify())
 		.pipe(gulp.dest('builds/development/js'))
+		.pipe(browserSync.stream());
 });
 
 gulp.task('compass', function(){
@@ -38,18 +41,42 @@ gulp.task('compass', function(){
  			style: 'expanded'
 		}))
 		.on('error', gutil.log)
-		.pipe(gulp.dest('builds/development/css')) 
+		.pipe(gulp.dest('builds/development/css'))
+		.pipe(browserSync.stream());
 });
 
 gulp.task('watch', function(){
-	gulp.watch(coffeeSource, ['coffee'])
-	gulp.watch(jsSources, ['js'])
-	gulp.watch('components/sass/*.scss', ['compass'])
+	gulp.watch(coffeeSource, ['coffee']);
+	gulp.watch(jsSources, ['js']);
+	gulp.watch('components/sass/*.scss', ['compass']);
+	gulp.watch('builds/development/*.html').on('change', browserSync.reload);
+});
+
+
+gulp.task('serve', function() {
+
+    browserSync.init({
+        server: "builds/development/"
+    });
+
+    gulp.watch("apps/scss/*.scss", ['sass']);
+    gulp.watch("apps/*.html").on('change', browserSync.reload);
 });
 
 
 
+// gulp.task('connect', function(){
+// 	connect.server({
+// 		root: 'builds/development/',
+// 		livereload: true
+// 	});
+// });
+
+// gulp.task('html', function () {
+//   gulp.src('builds/development/index.html')
+//     .pipe(connect.reload());
+// });
 
 
 
-gulp.task('default', ['js', 'coffee', 'compass']);
+gulp.task('default', ['js', 'coffee', 'compass', 'serve', 'watch']);
